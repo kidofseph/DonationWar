@@ -1,8 +1,8 @@
 package background;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -73,20 +73,20 @@ public class OAuth2Client
 		String strLastDonationId = null;
 		if (listDonations != null)
 		{
-			float fSetSaveAmt = 0;
-			float fSetKarmaAmt = 0;
+			BigDecimal bdSetSaveAmt = BigDecimal.ZERO;
+			BigDecimal bdSetKarmaAmt = BigDecimal.ZERO;
 			boolean bFirstPass = true;
 			for (HashMap<String, String> donation : listDonations)
 			{
 				if (donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENSAVE") && 
 						!donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENKARMA"))
 				{
-					fSetSaveAmt += Float.parseFloat(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT));
+					bdSetSaveAmt = bdSetSaveAmt.add(new BigDecimal(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT).replaceAll("\"", "")));
 				}
 				else if (donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENKARMA") &&
 						!donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENSAVE"))
 				{
-					fSetKarmaAmt += Float.parseFloat(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT));
+					bdSetKarmaAmt = bdSetKarmaAmt.add(new BigDecimal(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT).replaceAll("\"", "")));
 				}
 				else if (donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENKARMA") &&
 						donation.get(OAuthConstants.COLUMN_DONATION_MESSAGE).toUpperCase().contains("SEVENSAVE"))
@@ -98,12 +98,12 @@ public class OAuth2Client
 						sbSearchString = sbSearchString.append(strMessage.charAt(i));
 						if(sbSearchString.toString().contains("SEVENSAVE"))
 						{
-							fSetSaveAmt += Float.parseFloat(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT));
+							bdSetSaveAmt = bdSetSaveAmt.add(new BigDecimal(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT).replaceAll("\"", "")));
 							break;
 						}
 						else if(sbSearchString.toString().contains("SEVENKARMA"))
 						{
-							fSetKarmaAmt += Float.parseFloat(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT));
+							bdSetKarmaAmt = bdSetKarmaAmt.add(new BigDecimal(donation.get(OAuthConstants.COLUMN_DONATION_AMOUNT).replaceAll("\"", "")));
 							break;
 						}
 					}
@@ -118,8 +118,8 @@ public class OAuth2Client
 
 			
 			ApplicationGui gui = new ApplicationGui();
-			m_fKarmaTotal += fSetKarmaAmt;
-			m_fSaveTotal += fSetSaveAmt;
+			m_fKarmaTotal += bdSetKarmaAmt.floatValue();
+			m_fSaveTotal += bdSetSaveAmt.floatValue();
 			HashMap<String, String> mapValuesForFile = new HashMap<String, String>();
 			mapValuesForFile.put(OAuthConstants.HASHTAG_SEVENKARMA, String.valueOf(m_fKarmaTotal));
 			mapValuesForFile.put(OAuthConstants.HASHTAG_SEVENSAVE, String.valueOf(m_fSaveTotal));
